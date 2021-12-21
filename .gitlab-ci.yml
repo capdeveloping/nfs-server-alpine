@@ -1,8 +1,12 @@
 ---
 
+image: docker:latest
+
+stages:
+  - build
+  - push
+
 docker-build:
-  # Use the official docker image.
-  image: docker:latest
   stage: build
   only: [master]
   services:
@@ -12,3 +16,15 @@ docker-build:
   script:
     - docker build -t "$CI_REGISTRY_USER/$CI_PROJECT_NAME:latest" .
     - docker push "$CI_REGISTRY_USER/$CI_PROJECT_NAME"
+
+push to github repo:
+  stage: push
+  image: debian:stable-slim
+  script:
+    - apt update -y && apt install git -y
+    - export UPDATE_GIT_URL="git remote set-url public-repo $GITHUB_URL"
+    - export ADD_GIT_URL="git remote add public-repo $GITHUB_URL"
+    - if [ `git remote | grep public-repo` == "public-repo" ]; then $UPDATE_GIT_URL; else $ADD_GIT_URL; fi
+    - git push public-repo HEAD:master
+  only:
+    - master
