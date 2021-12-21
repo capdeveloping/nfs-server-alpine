@@ -25,8 +25,8 @@ if [ -z "${SHARED_DIRECTORY}" ]; then
   echo "The SHARED_DIRECTORY environment variable is unset or null, exiting..."
   exit 1
 else
-  echo "Writing SHARED_DIRECTORY to /tmp/exports file"
-  /bin/sed -i "s@{{SHARED_DIRECTORY}}@${SHARED_DIRECTORY}@g" /tmp/exports
+  echo "Writing SHARED_DIRECTORY to /etc/exports file"
+  /bin/sed -i "s@{{SHARED_DIRECTORY}}@${SHARED_DIRECTORY}@g" /etc/exports
 fi
 
 shared_dirs=`env | grep SHARED_DIRECTORY_`
@@ -38,9 +38,9 @@ if [ ! -z "${shared_dirs}" ]; then
         name=${dir%=*}
         value=${dir#*=}
         if [ ! -z "${value}" ]; then
-            echo "Writing ${dir#*=} to /tmp/exports file"
-            echo "{{$name}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /tmp/exports
-            /bin/sed -i "s@{{$name}}@${value}@g" /tmp/exports
+            echo "Writing ${dir#*=} to /etc/exports file"
+            echo "{{$name}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
+            /bin/sed -i "s@{{$name}}@${value}@g" /etc/exports
         else
             echo "$name environment variable is set but null, skipping..."
         fi
