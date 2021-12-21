@@ -25,20 +25,28 @@ if [ -z "${SHARED_DIRECTORY}" ]; then
   echo "The SHARED_DIRECTORY environment variable is unset or null, exiting..."
   exit 1
 else
-  echo "Writing SHARED_DIRECTORY to /etc/exports file"
-  /bin/sed -i "s@{{SHARED_DIRECTORY}}@${SHARED_DIRECTORY}@g" /etc/exports
+  echo "Writing SHARED_DIRECTORY to /tmp/exports file"
+  /bin/sed -i "s@{{SHARED_DIRECTORY}}@${SHARED_DIRECTORY}@g" /tmp/exports
 fi
 
-# This is here to demonsrate how multiple directories can be shared. You
-# would need a block like this for each extra share.
-# Any additional shares MUST be subdirectories of the root directory specified
-# by SHARED_DIRECTORY.
+shared_dirs=`env | grep SHARED_DIRECTORY_`
 
-# Check if the SHARED_DIRECTORY_2 variable is empty
-if [ ! -z "${SHARED_DIRECTORY_2}" ]; then
-  echo "Writing SHARED_DIRECTORY_2 to /etc/exports file"
-  echo "{{SHARED_DIRECTORY_2}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /etc/exports
-  /bin/sed -i "s@{{SHARED_DIRECTORY_2}}@${SHARED_DIRECTORY_2}@g" /etc/exports
+# Check if the SHARED_DIRECTORY variable is empty
+if [ ! -z "${shared_dirs}" ]; then
+    for dir in $shared_dirs
+    do
+        name=${dir%=*}
+        value=${dir#*=}
+        if [ ! -z "${value}" ]; then
+            echo "Writing ${dir#*=} to /tmp/exports file"
+            echo "{{$name}} {{PERMITTED}}({{READ_ONLY}},{{SYNC}},no_subtree_check,no_auth_nlm,insecure,no_root_squash)" >> /tmp/exports
+            /bin/sed -i "s@{{$name}}@${value}@g" /tmp/exports
+        else
+            echo "$name environment variable is set but null, skipping..."
+        fi
+    done
+else
+    echo "No multiple SHARED_DIRECTORY environment variable is set or null, skipping..."
 fi
 
 # Check if the PERMITTED variable is empty
